@@ -34,7 +34,9 @@ export function ToolCallRow({ call, nested }: { call: ToolCall; nested?: boolean
   const running = call.result === undefined && !call.stopped;
   const output = displayOutput(call);
   const input = toolInput(call);
-  const [expanded, setExpanded] = useState(false);
+  // Edits stay open: the diff is the point of the row, folding it hides the
+  // one thing worth reading.
+  const [expanded, setExpanded] = useState(() => call.name === "edit_file");
   const { verb, detail, code } = describeTool(call);
   const matches = mcpMatches(call);
   const results = webResults(call);

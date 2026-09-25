@@ -2359,11 +2359,6 @@ code {
   }
 }
 
-.tool-run[data-error="true"] .tool-icon,
-.tool-run[data-error="true"] .tool-hint {
-  color: var(--sev-critical);
-}
-
 /* Nudged to sit on the first line's baseline when the label wraps. A fixed box
    rather than the glyph's own width, so every verb starts on one column. The
    nudge is 1px, not 2: the glyph fills more of its box than it used to, so it
