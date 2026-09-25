@@ -532,8 +532,12 @@ fn a_half_streamed_command_label_does_not_invent_a_name() {
     );
 }
 
+/// The theme is process-global, so tests that touch it cannot run in parallel.
+static THEME_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[test]
 fn yolo_asks_before_it_switches() {
+    let _theme = THEME_LOCK.lock().unwrap();
     let mut app = chat_app("m1".into());
     app.mode = Mode::Edit;
     let mut client = AiClient::new("http://localhost", "k", "m1");
@@ -566,6 +570,7 @@ fn yolo_asks_before_it_switches() {
 
 #[test]
 fn theme_command_picks_and_persists() {
+    let _theme = THEME_LOCK.lock().unwrap();
     let mut app = chat_app("m1".into());
     let mut client = AiClient::new("http://localhost", "k", "m1");
     let (mut p, _rx) = pane();

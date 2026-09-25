@@ -807,6 +807,16 @@ const KEYS: &[Key] = &[
         help: "Print the model, provider, and skills header when chat starts",
     },
     Key {
+        name: "ui.theme",
+        label: "Theme",
+        group: Group::Ui,
+        kind: Kind::Text,
+        unit: Unit::None,
+        env: &[],
+        default: "default",
+        help: "Color palette chat renders in. `/theme` in chat previews and saves it",
+    },
+    Key {
         name: "experimental.jev",
         label: "Jev loop check",
         group: Group::Experimental,
@@ -888,6 +898,7 @@ fn configured(settings: &Settings, name: &str) -> Value {
         "mom.enabled" => json!(settings.mom.enabled),
         "mom.manifest" => json!(settings.mom.manifest),
         "ui.welcome" => json!(settings.ui.welcome),
+        "ui.theme" => json!(settings.ui.theme),
         "experimental.jev" => json!(settings.experimental.jev),
         _ => Value::Null,
     }

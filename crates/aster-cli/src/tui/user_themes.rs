@@ -109,7 +109,7 @@ fn load_file(path: &Path) -> Option<super::theme::ThemeEntry> {
 /// `base:` names a builtin whose palette fills every field the file leaves out.
 fn base_palette(name: &str) -> Option<Theme> {
     match name {
-        "dark" => Some(Theme::DEFAULT),
+        "default" | "dark" => Some(Theme::DEFAULT),
         "light" => Some(Theme::LIGHT),
         "midnight" => Some(Theme::MIDNIGHT),
         "forest" => Some(Theme::FOREST),

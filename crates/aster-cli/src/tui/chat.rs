@@ -1326,7 +1326,7 @@ impl ChatApp {
             mom_looping: false,
             mom_model_down: false,
             mom_turns: 0,
-            theme_name: "dark".to_string(),
+            theme_name: "default".to_string(),
             show_welcome: true,
         }
     }

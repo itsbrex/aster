@@ -9,7 +9,7 @@ what you had.
 
 | Name | Family | Look |
 | --- | --- | --- |
-| `dark` | aster default | warm dark, ember accent |
+| `default` | aster default | warm dark, ember accent |
 | `light` | aster default | for bright terminals |
 | `midnight` | aster default | deep blue, Tokyo-night family |
 | `forest` | aster default | muted green, everforest family |

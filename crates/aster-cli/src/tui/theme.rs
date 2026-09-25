@@ -136,7 +136,7 @@ pub fn all() -> &'static [ThemeEntry] {
     static REGISTRY: OnceLock<Vec<ThemeEntry>> = OnceLock::new();
     REGISTRY.get_or_init(|| {
         let mut all = vec![
-            ThemeEntry::builtin("dark", "the default warm dark palette", &Theme::DEFAULT),
+            ThemeEntry::builtin("default", "the default warm dark palette", &Theme::DEFAULT),
             ThemeEntry::builtin("light", "for bright terminals", &Theme::LIGHT),
             ThemeEntry::builtin("midnight", "deep blue dark palette", &Theme::MIDNIGHT),
             ThemeEntry::builtin("forest", "muted green dark palette", &Theme::FOREST),
@@ -192,8 +192,13 @@ pub fn all() -> &'static [ThemeEntry] {
 }
 
 pub fn named(name: &str) -> Option<&'static ThemeEntry> {
+    let name = if name == "dark" { "default" } else { name };
     all().iter().find(|t| t.name == name)
 }
+
+#[cfg(test)]
+#[path = "tests/theme_test.rs"]
+mod tests;
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)] // palette fields are read selectively across TUI views
