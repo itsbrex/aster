@@ -1266,6 +1266,7 @@ export class AsterPanel implements vscode.WebviewViewProvider {
       const running = chat.run({
         messages: message.messages,
         cwd: root,
+        provider: this.endpoint,
         model: message.model,
         permissionMode: message.permissionMode,
         effort: message.effort,

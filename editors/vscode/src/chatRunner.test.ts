@@ -23,6 +23,8 @@ class FakeAgent extends EventEmitter {
   silentPrompt = false;
   prompts: string[][] = [];
   methods: string[] = [];
+  configSets: string[] = [];
+  provider = "https://a.example/v1";
 
   constructor() {
     super();
@@ -36,11 +38,19 @@ class FakeAgent extends EventEmitter {
             (message.params.prompt as { text: string }[]).map((part) => part.text)
           );
         }
+        if (message.method === "session/set_config_option") {
+          this.configSets.push(`${message.params.configId}=${message.params.value}`);
+        }
         if (message.method === "session/prompt" && this.silentPrompt) continue;
         const failing = message.method === "session/prompt" && this.promptError;
         const body = failing
           ? { error: { code: -32603, message: this.promptError } }
-          : { result: { sessionId: "s1" } };
+          : {
+              result: {
+                sessionId: "s1",
+                configOptions: [{ id: "provider", currentValue: this.provider }],
+              },
+            };
         this.stdout.write(`${JSON.stringify({ jsonrpc: "2.0", id: message.id, ...body })}\n`);
       }
     });
@@ -60,12 +70,15 @@ function options(
   messages: { role: "user" | "assistant"; content: string }[] = [
     { role: "user", content: "hi" },
   ],
-  session: string | null = null
+  session: string | null = null,
+  provider: string | null = null,
+  model: string | null = null
 ) {
   return {
     messages,
     cwd: "/repo",
-    model: null,
+    provider,
+    model,
     permissionMode: "ask" as const,
     effort: null,
     env: {},
@@ -77,6 +90,23 @@ function options(
 
 describe("ChatRunner", () => {
   beforeEach(() => spawn.mockReset());
+
+  it("moves the running agent to a provider picked after it started", async () => {
+    const agent = new FakeAgent();
+    spawn.mockReturnValue(agent);
+    const runner = new ChatRunner();
+    const first = [{ role: "user" as const, content: "hi" }];
+    const second = [
+      ...first,
+      { role: "assistant" as const, content: "hello" },
+      { role: "user" as const, content: "again" },
+    ];
+
+    await runner.run(options(() => undefined, first, null, "https://a.example/v1", "m1"));
+    await runner.run(options(() => undefined, second, null, "https://b.example/v1/", "m1"));
+
+    expect(agent.configSets).toEqual(["model=m1", "provider=https://b.example/v1", "model=m1"]);
+  });
 
   it("shows the reason the agent gave for failing a turn", async () => {
     const agent = new FakeAgent();

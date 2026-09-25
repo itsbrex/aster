@@ -6,6 +6,9 @@ import { ToolCallWire, contentText, editedPath, toolResult } from "./acpWire";
 export interface ChatOptions {
   messages: ChatMessage[];
   cwd: string;
+  /** The endpoint the panel last made current; the agent switches to it
+   *  before the next turn, since it resolved its provider once at startup. */
+  provider: string | null;
   model: string | null;
   permissionMode: PermissionMode;
   effort: Effort | null;
@@ -29,6 +32,11 @@ interface PermissionOptionWire {
   optionId: string;
   name: string;
   kind: string;
+}
+
+interface ConfigOptionWire {
+  id: string;
+  currentValue?: string;
 }
 
 interface PendingPrompt {
@@ -57,6 +65,7 @@ export class ChatRunner {
   private loadedSession: string | null | undefined;
   private synced: ChatMessage[] = [];
   private injected: string[] = [];
+  private appliedProvider: string | null = null;
   private appliedModel: string | null = null;
   private appliedEffort: Effort | null = null;
   private appliedMode: PermissionMode | null = null;
@@ -317,14 +326,16 @@ export class ChatRunner {
   private async bindSession(options: ChatOptions, wanted: string | null): Promise<void> {
     const params = { cwd: options.cwd, mcpServers: [] };
     let sessionId: string;
+    let opened: { configOptions?: ConfigOptionWire[] } | undefined;
     if (wanted) {
       this.loading = true;
       try {
         const loaded = (await this.call("session/load", {
           ...params,
           sessionId: wanted,
-        })) as { sessionId?: string };
+        })) as { sessionId?: string; configOptions?: ConfigOptionWire[] };
         sessionId = loaded?.sessionId ?? wanted;
+      opened = loaded;
       } finally {
         this.loading = false;
       }
@@ -338,13 +349,17 @@ export class ChatRunner {
     } else {
       const created = (await this.call("session/new", params)) as {
         sessionId?: string;
+        configOptions?: ConfigOptionWire[];
       };
       sessionId = created?.sessionId ?? "";
+      opened = created;
       this.synced = [];
     }
     this.sessionId = sessionId;
     this.loadedSession = wanted;
     this.appliedModel = this.appliedEffort = this.appliedMode = null;
+    this.appliedProvider =
+      opened?.configOptions?.find((o) => o.id === "provider")?.currentValue ?? null;
   }
 
   private async applyConfig(options: ChatOptions): Promise<void> {
@@ -354,6 +369,13 @@ export class ChatRunner {
     }
     const set = (configId: string, value: string) =>
       this.call("session/set_config_option", { sessionId: session, configId, value });
+    const provider = options.provider?.replace(/\/+$/, "") || null;
+    if (provider && provider !== this.appliedProvider) {
+      await set("provider", provider);
+      this.appliedProvider = provider;
+      // The agent lands on the provider's default model, so the pick is resent.
+      this.appliedModel = null;
+    }
     if (options.model && options.model !== this.appliedModel) {
       await set("model", options.model);
       this.appliedModel = options.model;
@@ -386,6 +408,7 @@ export class ChatRunner {
     this.lastStderr = [];
     this.sessionId = undefined;
     this.loadedSession = undefined;
+    this.appliedProvider = null;
     this.appliedModel = this.appliedEffort = this.appliedMode = null;
 
     child.stdout.setEncoding("utf8");

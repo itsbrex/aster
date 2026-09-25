@@ -219,6 +219,7 @@ export function start(root: string, port: number): void {
           const running = chat.run({
             messages: message.messages,
             cwd: root,
+            provider: state.provider?.baseUrl ?? null,
             model: message.model,
             permissionMode: message.permissionMode,
             effort: message.effort,
