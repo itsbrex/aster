@@ -22,6 +22,7 @@ import { HistoryPanel } from "./components/HistoryPanel";
 import { MemoryPanel } from "./components/MemoryPanel";
 import type { MemoryBody } from "./components/MemoryRow";
 import { InfoModal } from "./components/InfoModal";
+import { McpServerModal } from "./components/McpServerModal";
 import { FilePreview } from "./components/FilePreview";
 import { FindBar } from "./components/FindBar";
 import { Thread } from "./components/Thread";
@@ -112,6 +113,7 @@ export function App() {
   const [memoryBodies, setMemoryBodies] = useState<Record<string, MemoryBody>>({});
   const [info, setInfo] = useState<InfoCardData | null>(null);
   const [mcpServers, setMcpServers] = useState<McpServer[]>([]);
+  const [mcpServerOpen, setMcpServerOpen] = useState<string | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [openMenu, setOpenMenu] = useState(false);
   const closeMenuRequest = useCallback(() => setOpenMenu(false), []);
@@ -1013,6 +1015,7 @@ export function App() {
             post({ type: "setProvider", baseUrl: provider.base_url, model: provider.example_model })
           }
           onToggleMcp={(name, disabled) => post({ type: "toggleMcp", name, disabled })}
+          onOpenServer={setMcpServerOpen}
           soundsOn={sounds}
           onToggleSounds={(on) => {
             setSoundsEnabled(on);
@@ -1056,6 +1059,11 @@ export function App() {
         />
       )}
       {info && <InfoModal card={info} onClose={() => setInfo(null)} />}
+      <McpServerModal
+        server={mcpServers.find((s) => s.name === mcpServerOpen) ?? null}
+        onToggle={(name, disabled) => post({ type: "toggleMcp", name, disabled })}
+        onClose={() => setMcpServerOpen(null)}
+      />
       {!inEditor && <FilePreview />}
       {!nativeFind && <FindBar />}
 

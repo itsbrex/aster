@@ -129,6 +129,7 @@ export function Composer({
   onEffort,
   onProvider,
   onToggleMcp,
+  onOpenServer,
   soundsOn,
   onToggleSounds,
   groupingOn,
@@ -172,6 +173,7 @@ export function Composer({
   onEffort: (effort: Effort | null) => void;
   onProvider: (provider: Provider) => void;
   onToggleMcp: (name: string, disabled: boolean) => void;
+  onOpenServer: (name: string) => void;
   soundsOn: boolean;
   onToggleSounds: (on: boolean) => void;
   groupingOn: boolean;
@@ -693,7 +695,7 @@ export function Composer({
       onClose={closeMenu}
     />
   ) : menu === "mcp" ? (
-    <McpPicker servers={mcpServers} onToggle={onToggleMcp} />
+    <McpPicker servers={mcpServers} onToggle={onToggleMcp} onOpen={onOpenServer} />
   ) : null;
 
   const anchor =

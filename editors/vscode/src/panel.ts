@@ -767,6 +767,18 @@ export class AsterPanel implements vscode.WebviewViewProvider {
         await this.sendMcpServers();
         break;
       }
+      case "mcpLogin": {
+        // OAuth sign-in is interactive (it opens a browser and waits on a
+        // callback), so it runs in a terminal the user can see rather than
+        // through the silent `runCli` path.
+        const terminal = vscode.window.createTerminal({
+          name: `Sign in to ${message.name}`,
+          cwd: workspaceRoot() ?? undefined,
+        });
+        terminal.show();
+        terminal.sendText(`${cliConfig().binary} mcp login ${message.name}`);
+        break;
+      }
       case "listProviders": {
         // The catalog ships in the binary, so it reads fine before a folder is open.
         const root = workspaceRoot() ?? os.homedir();

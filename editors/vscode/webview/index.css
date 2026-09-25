@@ -2938,6 +2938,171 @@ code {
 /* Modal to the turn: dims the thread and pins the card just above the composer. */
 /* Modals */
 
+/* MCP rows speak the same language as the agent cards: a quiet well per row,
+   the switch answering "is it on" without opening anything, the rest of the
+   row raising the server's own panel. */
+/* Doubled class selector: .picker-row is defined later in this file and would
+   otherwise win the tie, re-breaking the row's centre alignment. */
+.picker-row.mcp-row {
+  padding: 0;
+  align-items: center;
+  border-radius: calc(var(--radius-xl) - var(--s1));
+  background: var(--code-bg);
+  transition: background 120ms ease-out;
+}
+
+.picker-row.mcp-row:hover {
+  background: var(--code-bg-strong);
+}
+
+/* A disabled server reads quieter than an enabled one: the switch already
+   carries the state, so the row just recedes instead of spelling it out. */
+.picker-row.mcp-row[data-selected="false"] .picker-body {
+  opacity: 0.45;
+}
+
+.mcp-row-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s2) var(--s2) 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.mcp-row-open:active {
+  opacity: 0.7;
+}
+
+.mcp-row-open .picker-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mcp-chev {
+  display: flex;
+  color: var(--fg-dim);
+}
+
+.mcp-chev svg {
+  width: 12px;
+  height: 12px;
+}
+
+.mcp-switch {
+  flex: none;
+  width: 34px;
+  height: 20px;
+  padding: 2px;
+  margin: 0 var(--s2);
+  border-radius: 999px;
+  border: none;
+  background: var(--fg-dim);
+  cursor: pointer;
+  transition: background 160ms ease, transform 120ms ease-out;
+}
+
+.mcp-switch:active {
+  transform: scale(0.94);
+}
+
+.mcp-switch[aria-checked="true"] {
+  background: var(--diff-add, var(--accent, var(--fg)));
+}
+
+.mcp-switch-knob {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.mcp-switch[aria-checked="true"] .mcp-switch-knob {
+  transform: translateX(14px);
+}
+
+/* One server's own panel: what it is, whether it is on, and what it takes. */
+.mcp-server-modal {
+  width: min(440px, 100%);
+  padding: var(--s4);
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 180ms ease-out, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mcp-server-modal {
+    transition: opacity 180ms ease-out;
+    transform: none;
+
+    @starting-style {
+      transform: none;
+    }
+  }
+}
+
+.mcp-server-target {
+  margin: var(--s1) 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg-dim);
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+}
+
+.mcp-action,
+.mcp-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  margin: 0 calc(var(--s2) * -1);
+  padding: var(--s2) var(--s2);
+  border: none;
+  border-top: 1px solid var(--border, rgba(128, 128, 128, 0.25));
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border-radius: 0;
+  transition: background 120ms ease;
+}
+
+.mcp-action-btn {
+  cursor: pointer;
+}
+
+.mcp-action-btn:hover {
+  background: var(--list-hover, rgba(128, 128, 128, 0.12));
+}
+
+.mcp-action-btn:active {
+  transform: scale(0.985);
+}
+
+.mcp-action-text,
+.mcp-action-btn .picker-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 /* One ground for everything that covers the thread. Dropped from the top for
    something typed into, centred for something read, and at the foot for a
    question over the turn that asked it. */

@@ -305,6 +305,7 @@ export type ToHost =
   | { type: "pasteFiles"; files: PastedFile[] }
   | { type: "listMcp" }
   | { type: "toggleMcp"; name: string; disabled: boolean }
+  | { type: "mcpLogin"; name: string }
   | { type: "listProviders" }
   | { type: "setProvider"; baseUrl: string; model: string }
   | { type: "login"; target: string }
