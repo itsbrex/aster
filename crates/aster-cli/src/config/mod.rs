@@ -221,6 +221,7 @@ fn key_status(repo_root: &Path) -> Result<()> {
                 "vars": rows,
                 "configured": setup.is_none(),
                 "setup": setup,
+                "logins": provider::found_logins(),
             })
         );
         return Ok(());

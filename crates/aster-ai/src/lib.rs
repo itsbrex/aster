@@ -20,6 +20,7 @@ pub mod codex;
 pub mod codex_api;
 mod error_log;
 pub mod keys;
+pub mod logins;
 pub mod pkce;
 pub mod router;
 

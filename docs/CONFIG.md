@@ -156,6 +156,12 @@ existing `~/.codex/auth.json` from the Codex CLI if it finds one. That endpoint
 speaks OpenAI's Responses API rather than `/chat/completions`; Aster translates
 both directions, so models and tools work as they do anywhere else.
 
+Setup (`aster init`, or a first chat with nothing configured) says which
+subscriptions it found already signed in on the machine and marks them in the
+sign-in menu; picking one uses that sign-in without opening a browser. Today
+that is a ChatGPT sign-in from either store above. `aster config key --json`
+lists them under `logins`.
+
 A key named for the endpoint in use wins over the shared one, so switching
 provider picks up a key you already export instead of demanding you move it:
 

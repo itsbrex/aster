@@ -175,6 +175,14 @@ fn expired(access_token: &str) -> bool {
         .unwrap_or(true)
 }
 
+/// The email the ChatGPT account signed in with, read from the id token.
+pub fn email(auth: &CodexAuth) -> Option<String> {
+    let tokens = auth.tokens.as_ref()?;
+    jwt_claim(&tokens.id_token, "email")?
+        .as_str()
+        .map(str::to_string)
+}
+
 fn jwt_claim(token: &str, claim: &str) -> Option<serde_json::Value> {
     let payload = token.split('.').nth(1)?;
     let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD

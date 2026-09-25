@@ -9,6 +9,7 @@ use std::{env, fs};
 use anyhow::{Context, Result, bail};
 use aster_ai::AiClient;
 use aster_ai::keys;
+use aster_ai::logins::Login;
 use clap::Args;
 use cliclack::{log, multiselect, outro, outro_cancel, password, select, set_theme};
 use console::Style;
@@ -667,11 +668,23 @@ pub(crate) async fn provider_setup(
     providers: &[Provider],
     current: &Current,
 ) -> Result<Option<Chosen>> {
+    let logins = crate::config::provider::found_logins();
+    for login in &logins {
+        let account = login
+            .account
+            .as_deref()
+            .map(|a| format!(" as {a}"))
+            .unwrap_or_default();
+        log::info(format!(
+            "Found {name} on this computer, signed in{account}. Choose \"Sign in with a browser\", then {name}, to use it.",
+            name = login.name
+        ))?;
+    }
     let Some(route) = route_step(current)? else {
         return Ok(None);
     };
     match route {
-        Route::SignIn => sign_in_setup(providers, current).await,
+        Route::SignIn => sign_in_setup(providers, current, &logins).await,
         Route::Key => key_setup(providers, current).await,
         Route::Local => local_setup(providers, current).await,
     }
@@ -685,10 +698,26 @@ const SIGN_IN: [(&str, &str, &str); 4] = [
     ("cloudflare", "Cloudflare", "Workers AI on your account"),
 ];
 
-async fn sign_in_setup(providers: &[Provider], current: &Current) -> Result<Option<Chosen>> {
+async fn sign_in_setup(
+    providers: &[Provider],
+    current: &Current,
+    logins: &[Login],
+) -> Result<Option<Chosen>> {
+    let found = |id: &str| logins.iter().find(|login| login.provider == id);
     let mut menu = select::<usize>("Sign in with");
-    for (i, (_, name, hint)) in SIGN_IN.iter().enumerate() {
-        menu = menu.item(i, *name, *hint);
+    if let Some(i) = SIGN_IN.iter().position(|(id, _, _)| found(id).is_some()) {
+        menu = menu.initial_value(i);
+    }
+    for (i, (id, name, hint)) in SIGN_IN.iter().enumerate() {
+        let hint = match found(id) {
+            Some(Login {
+                account: Some(account),
+                ..
+            }) => format!("already signed in as {account}"),
+            Some(_) => "already signed in on this computer".to_string(),
+            None => (*hint).to_string(),
+        };
+        menu = menu.item(i, *name, hint);
     }
     let Some(i) = or_cancel(menu.interact())? else {
         return Ok(None);
@@ -696,6 +725,7 @@ async fn sign_in_setup(providers: &[Provider], current: &Current) -> Result<Opti
     let (id, name, _) = SIGN_IN[i];
     let mut signed_in_url = None;
     let summary = match id {
+        _ if found(id).is_some() => format!("Using the {name} sign-in already on this computer."),
         "openrouter" => crate::openrouter_auth::login().await?,
         "zai_coding" => crate::zai_auth::login().await?,
         "cloudflare" => {

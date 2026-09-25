@@ -115,6 +115,13 @@ pub fn resolve_endpoint(review: &Review, model_flag: Option<&str>) -> (String, S
     (base_url, model)
 }
 
+/// Subscription sign-ins already on this machine, for setup to offer.
+pub fn found_logins() -> Vec<aster_ai::logins::Login> {
+    aster_ai::home_dir()
+        .map(|home| aster_ai::logins::found(&home))
+        .unwrap_or_default()
+}
+
 /// Get endpoint, key, model. `model_flag` takes highest priority.
 /// If model is "auto" and endpoint is openrouter, call the router to resolve.
 pub fn resolve(review: &Review, model_flag: Option<&str>) -> Result<LlmConfig> {
