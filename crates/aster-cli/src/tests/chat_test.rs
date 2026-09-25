@@ -2299,5 +2299,20 @@ fn reading_an_internal_skill_is_never_a_visible_step() {
         "read_file",
         r#"{"path":"correction-protocol"}"#
     ));
+    assert!(internal_call(
+        &skills,
+        "explore",
+        r#"{"steps":[{"tool":"read_file","args":{"path":"a.rs"}},{"tool":"read_skill","args":{"name":"correction-protocol"}}]}"#
+    ));
+    assert!(internal_call(
+        &skills,
+        "explore",
+        r#"{"steps":"[{\"tool\":\"read_skill\",\"args\":{\"name\":\"correction-protocol\"}}]"}"#
+    ));
+    assert!(!internal_call(
+        &skills,
+        "explore",
+        r#"{"steps":[{"tool":"read_skill","args":{"name":"git-workflow"}}]}"#
+    ));
     assert!(!internal_call(&skills, "read_skill", "not json"));
 }

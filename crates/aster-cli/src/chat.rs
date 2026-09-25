@@ -2515,7 +2515,9 @@ pub(crate) async fn agent_loop(
             if !result.starts_with("error: ") {
                 round_all_errors = false;
             }
-            if !internal_call(&ctx.skills, &call.function.name, &call.function.arguments) {
+            let internal =
+                internal_call(&ctx.skills, &call.function.name, &call.function.arguments);
+            if !internal {
                 emit(json!({
                     "type": "tool_result",
                     "id": call.id,
@@ -2525,7 +2527,14 @@ pub(crate) async fn agent_loop(
                     "images": images.len(),
                 }));
             }
-            ctx.record(MessageEvent::tool(&call.id, &result));
+            ctx.record(MessageEvent::tool(
+                &call.id,
+                if internal {
+                    "[internal tool result omitted]"
+                } else {
+                    &result
+                },
+            ));
             wire.push(json!({
                 "role": "tool",
                 "tool_call_id": call.id,
@@ -3985,11 +3994,22 @@ fn read_only_call(
 /// Reading an internal skill is never shown as a step: the user sees the
 /// behaviour, not the manual behind it.
 fn internal_call(skills: &aster_skills::SkillSet, name: &str, arguments: &str) -> bool {
-    name == "read_skill"
-        && serde_json::from_str::<Value>(arguments)
-            .ok()
-            .and_then(|v| v["name"].as_str().map(str::to_string))
-            .is_some_and(|skill| skills.is_internal(&skill))
+    let Ok(arguments) = serde_json::from_str::<Value>(arguments) else {
+        return false;
+    };
+    match name {
+        "read_skill" => arguments["name"]
+            .as_str()
+            .is_some_and(|skill| skills.is_internal(skill)),
+        "explore" => steps_array(&arguments).is_some_and(|steps| {
+            steps.iter().any(|step| {
+                let tool = step_tool(step);
+                let args = step_args(step);
+                internal_call(skills, &tool, &args.to_string())
+            })
+        }),
+        _ => false,
+    }
 }
 
 pub(crate) fn tool_names(allow_edits: bool, has_approver: bool) -> Vec<String> {
