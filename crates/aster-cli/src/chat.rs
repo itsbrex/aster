@@ -1027,6 +1027,7 @@ pub(crate) async fn consolidate_finished_session(
 pub async fn run(args: ChatArgs) -> Result<()> {
     let repo_root = env::current_dir().context("could not determine the current directory")?;
     let mut settings = crate::settings::Settings::load(Some(&repo_root))?;
+    crate::jev::init(&settings.experimental);
     let mut client = match crate::config::provider::resolve_client(&settings, args.model.as_deref())
     {
         Ok(client) => client,
@@ -2123,6 +2124,28 @@ pub(crate) async fn agent_loop(
             } else {
                 break;
             }
+        }
+        // The Jev check is advisory: a confident suggestion can end the turn
+        // early or steer it, never extend it past the cap above.
+        let advice = crate::jev::current().advise(&wire, round, round_cap).await;
+        if advice != crate::jev::Advice::None {
+            tracing::debug!(round, ?advice, "jev advised the loop");
+        }
+        match advice {
+            crate::jev::Advice::None => {}
+            crate::jev::Advice::Retry => steer(
+                &mut wire,
+                "A check of this turn says the current approach is not \
+                 working. Try a different way, or give your final answer."
+                    .to_string(),
+            ),
+            crate::jev::Advice::AskUser => steer(
+                &mut wire,
+                "A check of this turn says a fact you need is missing. Ask \
+                 the user one concrete question instead of guessing."
+                    .to_string(),
+            ),
+            crate::jev::Advice::Stop => break,
         }
         turn_span.record("rounds", round + 1);
         // Messages the user sent mid-turn join here, before the next request.

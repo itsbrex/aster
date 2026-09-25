@@ -231,6 +231,14 @@ pub(crate) fn rows(repo_root: &Path, all: bool) -> Vec<Row> {
         .collect();
 
     out.push(Row {
+        group: "Services",
+        label: "Jev loop check".to_string(),
+        var: "ASTER_JEV_API_KEY",
+        help: "TypeSafe's Jev classifier, advising the agent loop each round".to_string(),
+        source: source("ASTER_JEV_API_KEY", repo_root),
+        masked: masked("ASTER_JEV_API_KEY"),
+    });
+    out.push(Row {
         group: "Model",
         label: "Any endpoint".to_string(),
         var: SHARED_KEY_VAR,
@@ -279,7 +287,7 @@ pub(crate) fn list(repo_root: &Path, all: bool) -> Result<()> {
         return Ok(());
     }
 
-    for group in ["Web tools", "Model"] {
+    for group in ["Web tools", "Services", "Model"] {
         let rows: Vec<&Row> = rows.iter().filter(|r| r.group == group).collect();
         if rows.is_empty() {
             continue;
@@ -520,6 +528,7 @@ fn normalize(var: &str) -> Result<String> {
 
 fn known(var: &str) -> bool {
     var == SHARED_KEY_VAR
+        || var == "ASTER_JEV_API_KEY"
         || aster_web::KEY_VARS
             .iter()
             .any(|(_, known, _)| *known == var)

@@ -81,6 +81,18 @@ Two things are not settable here: `mcp.servers` and `mcp.tools` are structures
 rather than single values, and `aster mcp` owns them. API keys are never written
 to `aster.yaml` at all; see [Precedence](#precedence).
 
+## Experimental
+
+The `experimental` section holds opt-in behavior that is off by default and may
+change or disappear in any release.
+
+- `experimental.jev` (env `ASTER_JEV`): ask TypeSafe's
+  [Jev](https://typesafe.ai) classifier at each tool round whether the agent
+  loop should continue, retry, ask you, or stop. Advisory only: a
+  low-confidence answer is ignored, the round cap still binds, and a failed
+  check changes nothing. Needs a build with the `jev` cargo feature and
+  `ASTER_JEV_API_KEY` set.
+
 ## Where the file lives
 
 Aster reads two files and layers them:

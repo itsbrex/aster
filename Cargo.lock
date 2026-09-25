@@ -373,6 +373,7 @@ dependencies = [
  "aster-cron",
  "aster-eval",
  "aster-harness",
+ "aster-jev",
  "aster-lsp",
  "aster-mcp",
  "aster-memory",
@@ -485,6 +486,19 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "aster-jev"
+version = "0.6.1"
+dependencies = [
+ "anyhow",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "wiremock",
 ]
 
 [[package]]

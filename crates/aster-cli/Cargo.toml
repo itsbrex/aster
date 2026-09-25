@@ -21,6 +21,7 @@ aster-lsp = { path = "../aster-lsp" }
 aster-ai = { path = "../aster-ai" }
 aster-mom = { path = "../aster-mom" }
 aster-harness = { path = "../aster-harness" }
+aster-jev = { optional = true, path = "../aster-jev" }
 aster-mcp = { path = "../aster-mcp" }
 aster-memory = { path = "../aster-memory" }
 aster-models = { path = "../aster-models" }
@@ -84,6 +85,9 @@ ulid = "1"
 
 [target.'cfg(target_os = "android")'.dependencies]
 rustpython = { version = "0.5.0", default-features = false, features = ["freeze-stdlib", "importlib", "stdio", "host_env"] }
+
+[features]
+jev = ["dep:aster-jev"]
 
 [dev-dependencies]
 insta = "1.48.0"

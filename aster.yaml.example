@@ -112,6 +112,14 @@ agent:
   # Lower it for small-context models.
   compact_budget_chars: 192000
 
+# Experimental, off by default, and may change or disappear in any release.
+experimental:
+  # Ask TypeSafe's Jev classifier (https://typesafe.ai) at each tool round
+  # whether the loop should continue, retry, ask you, or stop. Advisory only:
+  # a low-confidence answer is ignored and the round cap still binds. Needs
+  # the `jev` cargo feature and ASTER_JEV_API_KEY; ASTER_JEV=1 also turns it on.
+  # jev: false
+
 # Fan-out limits for the sub-agents the `agent` tool spawns. Env overrides:
 # ASTER_COLLECTOR_MODEL, ASTER_AGENT_MAX_CONCURRENT, ASTER_AGENT_MAX_PER_TURN,
 # ASTER_AGENT_TIMEOUT.

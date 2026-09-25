@@ -23,6 +23,7 @@ mod images;
 mod import;
 mod init;
 mod instructions;
+mod jev;
 mod learn;
 mod lsp_tools;
 mod mcp;

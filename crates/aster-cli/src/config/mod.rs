@@ -352,10 +352,11 @@ enum Group {
     Review,
     Mcp,
     Ui,
+    Experimental,
 }
 
 impl Group {
-    const ALL: [Group; 9] = [
+    const ALL: [Group; 10] = [
         Group::Model,
         Group::Mom,
         Group::Providers,
@@ -365,6 +366,7 @@ impl Group {
         Group::Review,
         Group::Mcp,
         Group::Ui,
+        Group::Experimental,
     ];
 
     fn title(self) -> &'static str {
@@ -378,6 +380,7 @@ impl Group {
             Group::Review => "Code review",
             Group::Mcp => "MCP tools",
             Group::Ui => "Display",
+            Group::Experimental => "Experimental",
         }
     }
 
@@ -392,6 +395,7 @@ impl Group {
             Group::Review => "the review pipeline only, not chat",
             Group::Mcp => "how much of the tool catalogue the model sees",
             Group::Ui => "what chat prints on its own",
+            Group::Experimental => "opt-in behavior that may change or disappear",
         }
     }
 
@@ -801,6 +805,16 @@ const KEYS: &[Key] = &[
         default: "true",
         help: "Print the model, provider, and skills header when chat starts",
     },
+    Key {
+        name: "experimental.jev",
+        label: "Jev loop check",
+        group: Group::Experimental,
+        kind: Kind::Bool,
+        unit: Unit::None,
+        env: &["ASTER_JEV"],
+        default: "false",
+        help: "Ask TypeSafe's Jev classifier each tool round whether to continue, retry, ask, or stop. Advisory only; needs the jev cargo feature and ASTER_JEV_API_KEY",
+    },
 ];
 
 fn key(name: &str) -> Result<&'static Key> {
@@ -873,6 +887,7 @@ fn configured(settings: &Settings, name: &str) -> Value {
         "mom.enabled" => json!(settings.mom.enabled),
         "mom.manifest" => json!(settings.mom.manifest),
         "ui.welcome" => json!(settings.ui.welcome),
+        "experimental.jev" => json!(settings.experimental.jev),
         _ => Value::Null,
     }
 }

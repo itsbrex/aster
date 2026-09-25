@@ -17,7 +17,18 @@ pub struct Settings {
     pub ui: Ui,
     pub mom: Mom,
     pub providers: Providers,
+    pub experimental: Experimental,
     pub schedules: Vec<aster_cron::Schedule>,
+}
+
+/// Opt-in behavior that may change or disappear in any release.
+#[derive(Debug, Default, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Experimental {
+    /// Ask TypeSafe's Jev classifier at each tool round whether the loop
+    /// should continue, retry, ask the user, or stop. Advisory only. Needs
+    /// the `jev` cargo feature and `ASTER_JEV_API_KEY`.
+    pub jev: Option<bool>,
 }
 
 /// Where refreshed model ids come from. Only ids travel over this: endpoints
@@ -177,6 +188,9 @@ impl Settings {
             },
             providers: Providers {
                 catalog_url: project.providers.catalog_url.or(self.providers.catalog_url),
+            },
+            experimental: Experimental {
+                jev: project.experimental.jev.or(self.experimental.jev),
             },
             // Schedules merge by name, the project's definition winning, so a
             // repo can override a global cadence without dropping the rest.

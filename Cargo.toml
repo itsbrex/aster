@@ -27,6 +27,7 @@ members = [
     "crates/aster-remote",
     "crates/aster-lsp",
     "crates/aster-cron",
+    "crates/aster-jev",
     "crates/aster-cli",
 ]
 
