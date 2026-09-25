@@ -86,6 +86,25 @@ struct Inner {
     turn: Option<Turn>,
 }
 
+enum Incoming<'a> {
+    Request(u64),
+    Response(u64),
+    SessionUpdate(&'a Value),
+    Ignore,
+}
+
+fn classify(message: &Value) -> Incoming<'_> {
+    let id = message["id"].as_u64();
+    if message["method"].is_string() {
+        return match (id, message["method"].as_str()) {
+            (Some(id), _) => Incoming::Request(id),
+            (None, Some("session/update")) => Incoming::SessionUpdate(&message["params"]["update"]),
+            _ => Incoming::Ignore,
+        };
+    }
+    id.map_or(Incoming::Ignore, Incoming::Response)
+}
+
 pub struct Agent {
     /// Behind a lock because an agent can move to another tab when its
     /// session is loaded there.
@@ -393,28 +412,24 @@ impl Agent {
     /// One inbound line from the agent: a call to answer, an answer to one of
     /// ours, or a session update to translate.
     async fn route(&self, message: Value) {
-        let id = message["id"].as_u64();
-        if message["method"].is_string() {
-            if let Some(id) = id {
-                self.serve(id, &message).await;
+        match classify(&message) {
+            Incoming::Request(id) => self.serve(id, &message).await,
+            Incoming::Response(id) => {
+                let sender = self
+                    .pending
+                    .lock()
+                    .ok()
+                    .and_then(|mut pending| pending.remove(&id));
+                if let Some(sender) = sender {
+                    let _ = sender.send(message);
+                }
             }
-            return;
-        }
-        if let Some(id) = id {
-            let sender = self
-                .pending
-                .lock()
-                .ok()
-                .and_then(|mut pending| pending.remove(&id));
-            if let Some(sender) = sender {
-                let _ = sender.send(message);
-                return;
+            Incoming::SessionUpdate(update) => {
+                if !self.inner.lock().is_ok_and(|inner| inner.loading) {
+                    self.translate(update).await;
+                }
             }
-        }
-        if message["method"] == json!("session/update")
-            && !self.inner.lock().is_ok_and(|inner| inner.loading)
-        {
-            self.translate(&message["params"]["update"]).await;
+            Incoming::Ignore => {}
         }
     }
 
@@ -1076,6 +1091,7 @@ fn content_text(content: &Value) -> String {
             .filter_map(|block| block["text"].as_str())
             .collect::<Vec<_>>()
             .join(""),
+        Value::Object(_) => content["text"].as_str().unwrap_or_default().to_string(),
         Value::String(text) => text.clone(),
         _ => String::new(),
     }

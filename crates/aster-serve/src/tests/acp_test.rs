@@ -24,3 +24,29 @@ fn each_thinking_block_counts_its_own_tokens() {
     assert_eq!(turn.reasoning_chars, 0);
     assert!(turn.end_thinking().is_none());
 }
+
+#[test]
+fn classifies_session_updates_as_notifications() {
+    let message = json!({
+        "jsonrpc": "2.0",
+        "method": "session/update",
+        "params": {
+            "sessionId": "s1",
+            "update": {
+                "sessionUpdate": "agent_message_chunk",
+                "content": { "type": "text", "text": "Hello" }
+            }
+        }
+    });
+
+    let Incoming::SessionUpdate(update) = classify(&message) else {
+        panic!("session update was not classified as a notification");
+    };
+    assert_eq!(update["content"]["text"], "Hello");
+}
+
+#[test]
+fn extracts_text_from_acp_content_block() {
+    let content = json!({ "type": "text", "text": "Hello" });
+    assert_eq!(content_text(&content), "Hello");
+}
